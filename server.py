@@ -1,5 +1,6 @@
 from aiosmtpd.controller import Controller
 
+import datetime
 import email.parser
 import email.policy
 import time
@@ -9,12 +10,13 @@ class Handler:
         msg = email.parser.BytesParser(policy=email.policy.default).parsebytes(envelope.content)
         body = msg.get_body(preferencelist=('plain', 'html'))
         report = '\n'.join([
+            datetime.datetime.now(tz=datetime.timezone.utc).isoformat(),
             f'from   : {envelope.mail_from}',
             f'to     : {envelope.rcpt_tos}',
             f'subject: {msg["Subject"]}',
             f'date   : {msg["Date"]}',
             '',
-            body,
+            str(body),
         ])
         print(report)
         print('-'*40)
@@ -25,5 +27,6 @@ controller.start()
 print('Server started.')
 print(f'hostname: {repr(controller.hostname)}')
 print(f'port    : {controller.port}')
+print('-'*40)
 while True: time.sleep(1)
 controller.stop()
