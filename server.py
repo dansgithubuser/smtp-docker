@@ -8,10 +8,15 @@ class Handler:
     async def handle_DATA(self, _server, _session, envelope):
         msg = email.parser.BytesParser(policy=email.policy.default).parsebytes(envelope.content)
         body = msg.get_body(preferencelist=('plain', 'html'))
-        print('Message from %s' % envelope.mail_from)
-        print('Message for %s' % envelope.rcpt_tos)
-        print('Message data:\n')
-        print(body)
+        report = '\n'.join([
+            f'from   : {envelope.mail_from}',
+            f'to     : {envelope.rcpt_tos}',
+            f'subject: {msg["Subject"]}',
+            f'date   : {msg["Date"]}',
+            '',
+            body,
+        ])
+        print(report)
         print('-'*40)
         return '250 Message accepted for delivery'
 
