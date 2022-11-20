@@ -1,9 +1,25 @@
 from aiosmtpd.controller import Controller
 
+try:
+    import boto3
+except:
+    boto3 = None
+
 import datetime
 import email.parser
 import email.policy
+import os
+import socket
 import time
+
+if boto3:
+    sns_client = boto3.client(
+        'sns',
+        region_name='us-west-2',
+        aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+        aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+    )
+    sns_topic_arn = os.environ['AWS_SNS_TOPIC_ARN']
 
 class Handler:
     async def handle_DATA(self, _server, _session, envelope):
@@ -20,6 +36,16 @@ class Handler:
         ])
         print(report)
         print('-'*40)
+        if boto3:
+            try:
+                sns_client.publish(
+                    TopicArn=sns_topic_arn,
+                    Message=report,
+                    Subject=f'smtp-docker {socket.gethostname()}',
+                )
+            except Exception as e:
+                print(e)
+                raise Exception('Something went wrong.')
         return '250 Message accepted for delivery'
 
 controller = Controller(Handler(), hostname='', port=8025)

@@ -36,6 +36,7 @@ def invoke(
     no_split=False,
     out=False,
     quiet=False,
+    hide_args=False,
     **kwargs,
 ):
     if len(args) == 1 and not no_split:
@@ -44,12 +45,16 @@ def invoke(
         print(blue('-'*40))
         print(timestamp())
         print(os.getcwd()+'$', end=' ')
-        if any([re.search(r'\s', i) for i in args]):
-            print()
-            for i in args: print(f'\t{i} \\')
+        if hide_args:
+            args_to_show = args[:hide_args] + ('...',)
         else:
-            for i, v in enumerate(args):
-                if i != len(args)-1:
+            args_to_show = args
+        if any([re.search(r'\s', i) for i in args_to_show]):
+            print()
+            for i in args_to_show: print(f'\t{i} \\')
+        else:
+            for i, v in enumerate(args_to_show):
+                if i != len(args_to_show)-1:
                     end = ' '
                 else:
                     end = ';\n'
@@ -113,6 +118,7 @@ if args.run:
         '--restart', 'always',
         *extra_args,
         'dans-smtp:latest',
+        hide_args=2,
     )
     invoke('docker network connect dans-smtp-net dans-smtp')
 
