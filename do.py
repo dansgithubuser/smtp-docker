@@ -12,7 +12,9 @@ import sys
 #===== args =====#
 parser = argparse.ArgumentParser()
 parser.add_argument('--build', '-b', action='store_true')
+parser.add_argument('--create-network', '-n', action='store_true')
 parser.add_argument('--run', '-r', action='store_true')
+parser.add_argument('--attach', '-a', metavar='container_name')
 args = parser.parse_args()
 
 #===== consts =====#
@@ -91,6 +93,9 @@ if args.build:
     git_state()
     invoke('docker build -t dans-smtp:latest .')
 
+if args.create_network:
+    invoke('docker network create --driver bridge dans-smtp-net')
+
 if args.run:
     invoke('docker rm -f dans-smtp')
     if os.path.exists('run_extra_args.txt'):
@@ -109,3 +114,7 @@ if args.run:
         *extra_args,
         'dans-smtp:latest',
     )
+    invoke('docker network connect dans-smtp-net dans-smtp')
+
+if args.attach:
+    invoke(f'docker network connect dans-smtp-net {args.attach}')
