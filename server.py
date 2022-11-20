@@ -11,15 +11,21 @@ import email.policy
 import os
 import socket
 import time
+import traceback
 
 if boto3:
-    sns_client = boto3.client(
-        'sns',
-        region_name='us-west-2',
-        aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
-        aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
-    )
-    sns_topic_arn = os.environ['AWS_SNS_TOPIC_ARN']
+    try:
+        sns_client = boto3.client(
+            'sns',
+            region_name='us-west-2',
+            aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+            aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+        )
+        sns_topic_arn = os.environ['AWS_SNS_TOPIC_ARN']
+    except:
+        sns_client = None
+        traceback.print_exc()
+        print()
 
 class Handler:
     async def handle_DATA(self, _server, _session, envelope):
@@ -36,7 +42,7 @@ class Handler:
         ])
         print(report)
         print('-'*40)
-        if boto3:
+        if sns_client:
             try:
                 sns_client.publish(
                     TopicArn=sns_topic_arn,
